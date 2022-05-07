@@ -4,6 +4,8 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.util.ArrayList;
 
 import javax.swing.BorderFactory;
@@ -14,12 +16,14 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+import components.ClassList;
 import components.DynamicList;
 import components.EnseignantList;
 import components.EtudiantList;
 import components.MainFrame;
 import components.MatiereList;
 import components.NotesList;
+import espace_etudiant.Admin;
 import espace_etudiant.Enseignant;
 import gestion.Classe;
 import gestion.Etudiant;
@@ -32,14 +36,15 @@ public class EnseignantFrame extends MainFrame {
 	JPanel contentJPanel = new JPanel();
 	ClassPage cp  = null;
 	EnseignantFrame currentEnseignantFrame = null;
-	
-	public EnseignantFrame(Enseignant ens) {
+	ClassList classList = null;
+
+	public EnseignantFrame(Enseignant a) {
 		
-		super(500,700,0,0);
+		super(700,650,0,0);
 		if(currentEnseignantFrame == null)
 			currentEnseignantFrame = this;
 		
-		this.ens = ens;
+		ens = a;
 		
 		contentJPanel.setLayout(new BorderLayout());
 		
@@ -52,7 +57,12 @@ public class EnseignantFrame extends MainFrame {
 		cp.setVisible(true);
 		contentJPanel.add(cp);
 		
+		classList = new ClassList(false,false,false);
+		classList.setVisible(true);
+
+		
 		add(contentJPanel,BorderLayout.CENTER);
+		contentJPanel.setVisible(true);
 		setVisible(true);
 	}
 	
@@ -60,13 +70,12 @@ public class EnseignantFrame extends MainFrame {
 		String currentItem = "class";
 
 		public MainMenu() {
-			// TODO Auto-generated constructor stub
 			
 			setPreferredSize(new Dimension(1000,30));
 			
 			JMenuItem logoutItem = new JMenuItem("LogOut");
 			JMenuItem classItems = new JMenuItem("Classe");
-			
+
 			logoutItem.addActionListener(e-> {
 				if(e.getSource()!=logoutItem)
 					return;
@@ -94,7 +103,6 @@ public class EnseignantFrame extends MainFrame {
 				System.out.println("Menu " + currentItem);
 
 			});
-				
 
 			add(classItems);
 			add(logoutItem);
@@ -102,17 +110,19 @@ public class EnseignantFrame extends MainFrame {
 	}
 	
 	class ClassPage extends JPanel{
+		String currentItem = "Matieres";
 		
 		JPanel classContent = new JPanel();
-		String selectedClass = "";
-		
+		Classe selectedClass = null;
+		Component selectedView = null;
 		NotesList notesList = null;
-		MatiereList matiereList = null;
 		EtudiantList etudiantList = null;
 		JTextField etudiantNumField = null;
 		JComboBox<Classe> classesListBox = null;
-		
+		int i = 0;
+
 		ClassPage(){
+			
 			super();
 			
 			setLayout(new BorderLayout());
@@ -123,32 +133,31 @@ public class EnseignantFrame extends MainFrame {
 			classContent.setLayout(new BorderLayout());
 			classContent.setPreferredSize(new Dimension(1000,350));
 			
-			//Set the class DropDown and the student number
+			//Set the class Dropdown and the student number
 			JPanel header = new JPanel();
 			header.setLayout(new FlowLayout(FlowLayout.CENTER));
+			
 			
 			//Drop down
 			classesListBox = new JComboBox<Classe>() ;
 			classesListBox.setPreferredSize(new Dimension(150,50));
 			
-			for(Classe cl: LoginUserFrame.allclasses) {
+			for(Classe cl: Classe.getAllClassesFromDb()) {
 				classesListBox.addItem(cl);
 			}
 			
-			classesListBox.addItemListener(e->{
-				if(e.getSource()!=classesListBox)
-					return;
+			classesListBox.addItemListener(new ItemListener() {
 				
-				changeContentBasedOnClass();
-
+				@Override
+				public void itemStateChanged(ItemEvent e) {
+						changeContentBasedOnClass();			
+				}
 			});
 			
-			//student number
+			//Student number
 			etudiantNumField = new JTextField("Choisir un ID d'etudiant");
 			etudiantNumField.setBorder(BorderFactory.createTitledBorder("ID Etudiant"));
 			etudiantNumField.setPreferredSize(new Dimension(150,50));
-
-			
 
 			
 			//add elements to parents
@@ -157,7 +166,7 @@ public class EnseignantFrame extends MainFrame {
 			add(header,BorderLayout.NORTH);	
 			
 			add(classContent,BorderLayout.CENTER);	
-			
+
 			changeContentBasedOnClass();
 
 
@@ -165,18 +174,31 @@ public class EnseignantFrame extends MainFrame {
 		
 		void changeContentBasedOnClass() {
 			
+			//get the current class
 			Classe cl = (Classe)classesListBox.getSelectedItem();
-			if(selectedClass.equals(cl.toString()))
-				return;
+			cl.listeEtudiant = Etudiant.getAllEtudiantsInClasse(cl.getId());
+			selectedClass = cl;
 			
-			selectedClass = cl.toString();
-			etudiantList = new EtudiantList(cl,false,false,false);
-			etudiantList.setVisible(true);
+			//reset the etudiant list to use the current class
+			etudiantList = new EtudiantList(cl,true,true,true);
 			
-			currentItem = "Etudiant";
-			
-			renderComp(etudiantList, classContent);
+			//reset the view to 
 
+			etudiantList.setVisible(false);
+			
+			if(notesList != null)
+				notesList.setVisible(false);
+			
+			if(selectedView == null) {
+				currentItem="Etudiant";
+				selectedView = etudiantList;
+			}
+			
+			if(currentItem.equals("Etudiant")) {
+				selectedView = etudiantList;
+			}
+			
+			renderComp(selectedView, classContent);
 		}
 		
 		class SecondayMenu extends JMenuBar{
@@ -187,55 +209,38 @@ public class EnseignantFrame extends MainFrame {
 				
 				setPreferredSize(new Dimension(1000,30));
 							
-				JMenuItem matieres = new JMenuItem("Matieres");
 				JMenuItem etudiants = new JMenuItem("Etudiant");
 				JMenuItem notes = new JMenuItem("Notes");
 
-				
-				matieres.addActionListener(e-> {
-					if(e.getSource()!=matieres)
-						return;
-					
-
-					
-					currentItem = "Matieres";
-				
-					
-					renderComp(matiereList, classContent);
-					//renderComp();
-					System.out.println("Menu " + currentItem);
-					
-				});
-				
 				notes.addActionListener(e-> {
 					if(e.getSource()!=notes)
+						return;					
+					
+					if(currentItem.equals( "Notes"))
 						return;
-					
-					currentItem = "Notes";
-					 
-					
-					 
+					currentItem = "Notes";	 
 				
 					if(!etudiantID.equals(etudiantNumField.getText())) {
+						
 						etudiantID = etudiantNumField.getText();
-						Classe cur = (Classe)classesListBox.getSelectedItem();
+						
 						notesList = null;
+						
 						//find etudiant with that id
-						for(Etudiant etudiant : cur.listeEtudiant) {
+						for(Etudiant etudiant : selectedClass.listeEtudiant) {
 							if(etudiant.getId().equals(etudiantID)) {
 								notesList = new NotesList(etudiant, false, true, true);
 								break;
 							}
 						}
-
 					}
-						if(notesList == null) {
-							JOptionPane.showMessageDialog(this, "Invalid Id", "Choose a valid ID", JOptionPane.WARNING_MESSAGE);
-						}else {
-							renderComp(notesList, classContent);
-						}
-
 					
+					if(notesList == null) {
+						JOptionPane.showMessageDialog(this, "Invalid Id", "Choose a valid ID", JOptionPane.WARNING_MESSAGE);
+					}else {
+						selectedView = notesList;
+						renderComp(selectedView, classContent);
+					}
 
 					//renderComp();
 					System.out.println("Menu " + currentItem);
@@ -246,35 +251,33 @@ public class EnseignantFrame extends MainFrame {
 					if(e.getSource()!=etudiants)
 						return;
 					
-
+					if(currentItem.equals( "Etudiant"))
+						return;
 					currentItem = "Etudiant";
 
-					
+					System.out.println("you are on Etuds");
+
+					selectedView = etudiantList;
+
 					//mark the current item
-					renderComp(etudiantList, classContent);
-					//renderComp();
+					renderComp(selectedView, classContent);
 					System.out.println("Menu " + currentItem);
 
 				});
 				
-
-				add(matieres);
 				add(etudiants);
 				add(notes);
-
-				
 			}
 		}
-
 	}
 	
 	void renderComp(Component c,JPanel parent) {
-		parent.removeAll();
 		c.setVisible(true);
+		parent.removeAll();
 		parent.add(c);
 		parent.revalidate();
 		parent.repaint();
 	}
-	
-	
 }
+
+

@@ -1,6 +1,5 @@
 package model;
 
-import java.sql.PreparedStatement;
 import java.util.ArrayList;
 
 import dbmodels.DBUtils;
@@ -58,7 +57,7 @@ public class Note {
 
 	@Override
 	public String toString() {
-		return "Note [exam=" + exam + ", ds=" + ds + ", tp=" + tp + "]";
+		return "Note id="+ id+" [exam=" + exam + ", ds=" + ds + ", tp=" + tp + "]";
 	}
 
 

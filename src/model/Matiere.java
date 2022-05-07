@@ -28,15 +28,16 @@ public class Matiere {
 		this.coefTp = coefTp;
 		this.coefMatiere = coefMatiere;
 		this.nomMatiere = nomMatiere;
-		
 	}
 
 	public Matiere(int id) {
 		this.id=id;
 	}
+	
 	public Matiere(String nmname) {
 		this.nomMatiere=nmname;
 	}
+	
 	public Matiere(int id,String nmname) {
 		this.nomMatiere=nmname;
 		this.id=id;
@@ -100,13 +101,12 @@ public class Matiere {
 
 	@Override
 	public String toString() {
-		return "Matiere [coefExam=" + coefExam + ", coefDs=" + coefDs + ", coefTp=" + coefTp + ", coefMatiere="
+		return "Matiere id = "+Integer.toString(id)+"[coefExam=" + coefExam + ", coefDs=" + coefDs + ", coefTp=" + coefTp + ", coefMatiere="
 				+ coefMatiere + ", nomMatiere=" + nomMatiere + "]";
 	}
 
 	public static ArrayList<Matiere> getAllMatieresFromDb() {
 		try {
-			// TODO Auto-generated method stub
 			PreparedStatement prd = DBUtils.execute("SELECT coefExam,coefDS,coefTP,coefMatiere,MatiereName,idMatiere,idEnseignant,IdSemestre FROM  Matiere",null); 
 			ArrayList<Matiere> arr = new ArrayList<Matiere>();
 			if(prd != null) {
@@ -114,8 +114,6 @@ public class Matiere {
 				while(rs.next()) {
 					arr.add(new Matiere(rs.getDouble(1), rs.getDouble(2), rs.getDouble(3), rs.getDouble(4), rs.getString(5),rs.getInt(6),rs.getInt(7),rs.getInt(8)));
 				}			
-				System.out.println("Matieeeeeeeere");
-
 				return arr;
 			}else {
 				System.out.println("null");
@@ -127,7 +125,7 @@ public class Matiere {
 			
 	}
 	
-	public void saveToDb()  {
+	public Boolean saveToDb()  {
 
 		try {
 			// TODO Auto-generated method stub
@@ -138,34 +136,41 @@ public class Matiere {
 				System.out.println(affected);
 				if(affected == 1) {
 					System.out.println("added Matiere succesfully");
+				}else {
+					return false;
 				}
 			}else {
 				System.out.println("null");
+				return false;
 			}
-			
-			
 		} catch (Exception e) {
-			e.printStackTrace();			
+			e.printStackTrace();	
+			return false;
 		}
+		return true;
 	} 
 	
-	public void removeFromDb() {		
+	public Boolean removeFromDb() {		
 		try {
-			// TODO Auto-generated method stub
 			PreparedStatement prd = DBUtils.execute("DELETE FROM Matiere WHERE idMatiere = ?",new Object[] {id}); 
 			if(prd != null) {
 				int removed =  prd.executeUpdate();
 				System.out.println(removed);
 				if(removed == 1) {
 					System.out.println("Removed Matiere succesfully");
+				}else {
+					return false;
 				}
 			}else {
 				System.out.println("null");
+				return false;
 			}
 			
 		} catch (Exception e) {
 			e.printStackTrace();	
+			return false;
 		}
+		return true;
 	}
 	
 	public String getSemestre() {
@@ -176,13 +181,11 @@ public class Matiere {
 	}
 
 	public int getIdEnseignant() {
-		// TODO Auto-generated method stub
 		return idEnseignant;
 	}
 
-	public void updateInDbTo(Matiere newe) {
+	public Boolean updateInDbTo(Matiere newe) {
 		try {
-			// TODO Auto-generated method stub
 			PreparedStatement prd = DBUtils.execute("UPDATE Matiere SET idMatiere=?,MatiereName=?,coefDS=?,coefExam=?,coefTP=?,coefMatiere=?,idSemestre=?,idEnseignant=? WHERE idMatiere = ?",new Object[] {newe.id,newe.nomMatiere,newe.coefDs,newe.coefExam,newe.coefTp,newe.coefMatiere,newe.IdSemestre,newe.idEnseignant,id}); 
 
 			if(prd != null) {
@@ -190,16 +193,20 @@ public class Matiere {
 				System.out.println(updated);
 				if(updated == 1) {
 					System.out.println("updated Matiere succesfully");
+				}else {
+					return false;
 				}
 				
 			}else {
 				System.out.println("null");
+				return false;
 			}
-			
 			
 		} catch (Exception e) {
 			e.printStackTrace();	
-		}		
+			return false;
+		}	
+		return true;
 	}
 
 }

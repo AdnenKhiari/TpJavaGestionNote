@@ -5,5 +5,6 @@ public class Admin extends Utilisateur {
 		super();
 		setLogin(username);
 		setMotDePasse(pass);
+		
 	}
 }

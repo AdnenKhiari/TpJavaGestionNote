@@ -22,59 +22,21 @@ import gestion.Etudiant;
 
 public class LoginUserFrame extends MainFrame{
 	
-	private ArrayList<Utilisateur> users ;
 	public static ArrayList<Enseignant> listEnseignant = new ArrayList<Enseignant>();
 	public static ArrayList<Classe> allclasses = new ArrayList<Classe>();
-
 	public static LoginUserFrame openedLogin = null;
-	private ArrayList<Utilisateur> initUserList() {
-		
-		ArrayList<Utilisateur> users = new ArrayList<Utilisateur>();
-		
-		Classe mi2 = new Classe("Mi2",1);
-		Classe mi3 = new Classe("Mi3",2);
 
-		allclasses.add(mi2);
-		allclasses.add(mi3);
-
-		
-		Enseignant prof1 = new Enseignant("Imene", "12345","Imene","147647915",1);
-		Enseignant prof2 = new Enseignant("Khalil", "78910","Khalil Gharbi","97846245",2);
-
-		listEnseignant.add(prof1);
-		listEnseignant.add(prof2);
-		
-		//Classe mi3 = new Classe("Mi3");
-
-		//ajouter les comptes des etudiants
-		for(Etudiant ed : mi2.listeEtudiant) {
-			users.add(ed);
-		}
-
-		for(Enseignant e : listEnseignant) {
-			users.add(e);
-		}
-
-		users.add(new Admin("admin", "admin"));
-		
-		return users;
-	}
-	
 	public LoginUserFrame() {
-		super(325,375,0, 0);
 		
+		super(325,375,0, 0);
 		
 		if(openedLogin == null) {
 			openedLogin = this;
 		}
-		//init all users
-		users = initUserList();
-		
 		
 		JPanel containterJPanel= new JPanel();
 		containterJPanel.setLayout(new BorderLayout(10,10));
 		containterJPanel.setPreferredSize(new Dimension(325,325));
-
 
 		JTextField userField = new JTextField();
 		userField.setBorder(BorderFactory.createTitledBorder("Nom de user"));
@@ -83,31 +45,29 @@ public class LoginUserFrame extends MainFrame{
 
 		JButton loginButton = new JButton("Login !");
 		loginButton.addActionListener(e ->{
+			
 			String loginString = userField.getText();
 			String passString =  String.valueOf(userPassword.getPassword());
-			System.out.println(loginString);
-			System.out.println(passString);
+			
+			//Here the user
+			Utilisateur loggedUser = Utilisateur.getUser(loginString, passString);
+			
 			Boolean loggedBoolean = false;
-			for(Utilisateur us : users) {
-				if(us.seConnecter(loginString, passString)) {
-					succesLogin(us);
-					loggedBoolean = true;
-					break;
-				}
+		
+			if(loggedUser != null) {
+				succesLogin(loggedUser);
+				loggedBoolean = true;
 			}
+			
 			if(!loggedBoolean) {
 				JOptionPane.showMessageDialog(this, "Verifies les donnes ","Erreur de login", JOptionPane.WARNING_MESSAGE);
 			}
 		});
-		
-		
-		
+				
 		containterJPanel.setBorder(BorderFactory.createEmptyBorder(100,50,100,50));
-		
 		containterJPanel.add(userField,BorderLayout.NORTH);
 		containterJPanel.add(userPassword,BorderLayout.CENTER);
 		containterJPanel.add(loginButton,BorderLayout.SOUTH);
-
 		
 		add(containterJPanel,BorderLayout.CENTER);
 		
@@ -116,6 +76,7 @@ public class LoginUserFrame extends MainFrame{
 	
 	void succesLogin(Utilisateur us) {
 		
+		//Todo add admin todb + test db
 		Utilisateur.ConnectedUser = us;
 
 		String typeuser = "";
@@ -127,14 +88,12 @@ public class LoginUserFrame extends MainFrame{
 			typeuser = "Enseignant";
 			EnseignantFrame ff = new EnseignantFrame((Enseignant)us);
 			ff.setVisible(true);
-
 		}else if (us instanceof Admin) {
 			typeuser = "Admin";
 			AdminFrame ff = new AdminFrame((Admin)us);
 			ff.setVisible(true);
 		}
 
-		
 		JOptionPane.showMessageDialog(null, "Vous etes entre comme un " + typeuser);
 		setVisible(false);
 	}

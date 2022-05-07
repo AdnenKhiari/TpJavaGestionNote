@@ -19,7 +19,6 @@ public class Etudiant extends Utilisateur {
 	private String prenom;
 	private ArrayList<NoteMatiere> notesS1 = new ArrayList<NoteMatiere>();
 	private ArrayList<NoteMatiere> notesS2 = new ArrayList<NoteMatiere>();
-	
 
 	public Etudiant(String id, String cin, String name, ArrayList<NoteMatiere> notesS1,
 			ArrayList<NoteMatiere> notesS2) {
@@ -27,8 +26,7 @@ public class Etudiant extends Utilisateur {
 		this.id = id;
 		this.cin = cin;
 		this.name = name;
-		this.notesS1 = notesS1;
-		
+		this.notesS1 = notesS1;	
 		this.notesS2 = notesS2;
 	}
 
@@ -121,43 +119,11 @@ public class Etudiant extends Utilisateur {
 	public double moyenne() {
 		return (moyenneS1() + moyenneS2()) / 2;
 	}
-
-	public void ajouterNote(NoteMatiere item,String sm) {
-		if(sm =="Semestre 1")
-			notesS1.add(item);
-		else
-			notesS2.add(item);
-	}
-
-	// initialiser les matières
-	public void setListeMatiereS1(ArrayList<Matiere> listeMatiere) {
-		if (notesS1.isEmpty()) {
-			for (Matiere m : listeMatiere) {
-				notesS1.add(new NoteMatiere(m));
-			}
-		} else {
-			// TODO: make sure if you will add the list or to show an alert
-			System.err.println("should be implemented add to list noteMatiere");
-		}
-
-	}
-
-	public void setListeMatiereS2(ArrayList<Matiere> listeMatiere) {
-		if (notesS2.isEmpty()) {
-			for (Matiere m : listeMatiere) {
-				notesS2.add(new NoteMatiere(m));
-			}
-		} else {
-			// TODO: make sure if you will add the list or to show an alert
-			System.err.println("should be implemented add to list noteMatiere");
-		}
-
-	}
 	
 	public void getNotesFromDb(int semestre) {
 		try {
 			// TODO Auto-generated method stub
-			PreparedStatement prd = DBUtils.execute("SELECT nm.idnote_matiere, m.MatiereName, n.idNote, n.ds, n.tp, n.exam FROM NoteMatiere nm, Matiere m, Notes n, Etudiant e WHERE e.idEtudiant=nm.idEtudiant AND nm.idMatiere=m.idMatiere AND nm.idNote=n.idNote AND e.idEtudiant=? AND m.idSemestre=? ",new Object [] {id,semestre}); 
+			PreparedStatement prd = DBUtils.execute("SELECT nm.idnote_matiere,nm.idMatiere, m.MatiereName, n.idNote, n.ds, n.tp, n.exam FROM NoteMatiere nm, Matiere m, Notes n, Etudiant e WHERE e.idEtudiant=nm.idEtudiant AND nm.idMatiere=m.idMatiere AND nm.idNote=n.idNote AND e.idEtudiant=? AND m.idSemestre=? ",new Object [] {id,semestre}); 
 			if(prd != null) {
 				
 				if(semestre == 1)
@@ -167,9 +133,9 @@ public class Etudiant extends Utilisateur {
 
 				ResultSet rs  =  prd.executeQuery();
 				while(rs.next()) {
-					Note nt = new Note(rs.getInt(3),rs.getDouble(4),rs.getDouble(5),rs.getDouble(6));
-					Matiere m = new Matiere(rs.getInt(1) ,rs.getString(2));
-					NoteMatiere nm = new NoteMatiere(m, nt);
+					Note nt = new Note(rs.getInt(4),rs.getDouble(5),rs.getDouble(6),rs.getDouble(7));
+					Matiere m = new Matiere( Integer.parseInt(rs.getString(2)),rs.getString(3));
+					NoteMatiere nm = new NoteMatiere(Integer.parseInt(rs.getString(1)),m, nt);
 					
 					if(semestre == 1)
 						notesS1.add(nm);
@@ -189,7 +155,6 @@ public class Etudiant extends Utilisateur {
 		try {
 			// TODO Auto-generated method stub
 			PreparedStatement prd = DBUtils.execute("SELECT e.idEtudiant,e.nom,e.prenom,e.cin,e.idClasse,u.login,u.pwd  FROM  Etudiant e,User u WHERE e.idEtudiant=? AND u.idRef=e.idEtudiant AND u.userType=1 ",new Object [] {etudid}); 
-			ArrayList<NoteMatiere> arr = new ArrayList<NoteMatiere>();
 
 			if(prd != null) {
 				System.out.println("moawjoud");
@@ -202,6 +167,8 @@ public class Etudiant extends Utilisateur {
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
+			return null;
+
 			}
 		return null;
 	}
@@ -228,7 +195,7 @@ public class Etudiant extends Utilisateur {
 		return null;
 	}
 
-	public void saveToDb()  {
+	public Boolean saveToDb()  {
 
 		try {
 			// TODO Auto-generated method stub
@@ -240,28 +207,36 @@ public class Etudiant extends Utilisateur {
 				System.out.println(affected);
 				if(affected == 1) {
 					System.out.println("added etudiant succesfully");
+				}else {
+					return false;
 				}
 			}else {
 				System.out.println("null");
+				return false;
 			}
 			
-
 			if(prd != null) {
 				int affected =  prdUser.executeUpdate();
 				System.out.println(affected);
 				if(affected == 1) {
 					System.out.println("added User succesfully");
+				}else {
+					return false;
 				}
 			}else {
 				System.out.println("null");
+				return false;
 			}
 			
 		} catch (Exception e) {
-			e.printStackTrace();			
+			e.printStackTrace();
+			return false;
+
 		}
+		return true;
 	}
 
-	public void removeFromDb() {		
+	public Boolean removeFromDb() {		
 		try {
 			// TODO Auto-generated method stub
 			PreparedStatement prd = DBUtils.execute("DELETE FROM Etudiant WHERE idEtudiant = ?",new Object[] {id}); 
@@ -270,9 +245,13 @@ public class Etudiant extends Utilisateur {
 				System.out.println(removed);
 				if(removed == 1) {
 					System.out.println("Removed Etudiant succesfully");
+				}else {
+					return false;
 				}
 			}else {
 				System.out.println("null");
+				return false;
+
 			}
 			
 			PreparedStatement prdUser = DBUtils.execute("DELETE FROM User WHERE idRef = ? AND userType=1 ",new Object[] {id}); 
@@ -281,17 +260,23 @@ public class Etudiant extends Utilisateur {
 				System.out.println(removed);
 				if(removed == 1) {
 					System.out.println("Removed User succesfully");
+				}else {
+					return false;
 				}
 			}else {
 				System.out.println("null");
+				return false;
 			}
 			
 		} catch (Exception e) {
 			e.printStackTrace();	
+			return false;
+
 		}
+		return true;
 	}
 
-	public void updateInDbTo(Etudiant newe) {
+	public Boolean updateInDbTo(Etudiant newe) {
 		try {
 			// TODO Auto-generated method stub
 			PreparedStatement prd = DBUtils.execute("UPDATE Etudiant SET idEtudiant=?,nom=?,prenom=?,cin=?,idClasse=? WHERE idEtudiant = ?",new Object[] {newe.id,newe.name,newe.prenom,newe.cin,newe.idClasse,id}); 
@@ -302,10 +287,14 @@ public class Etudiant extends Utilisateur {
 				System.out.println(updated);
 				if(updated == 1) {
 					System.out.println("updated Etudiant succesfully");
+				}else {
+					return false;
 				}
 				
 			}else {
 				System.out.println("null");
+				return false;
+
 			}
 			
 			if(prdUser != null) {
@@ -313,15 +302,23 @@ public class Etudiant extends Utilisateur {
 				System.out.println(updated);
 				if(updated == 1) {
 					System.out.println("updated user succesfully");
+				}else {
+					return false;
+
 				}
 				
 			}else {
+
 				System.out.println("null");
+				return false;
+
 			}
 			
 		} catch (Exception e) {
 			e.printStackTrace();	
+			return false;
 		}
+		return true;
 	}
 	
 

@@ -4,6 +4,8 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.Panel;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -18,6 +20,7 @@ import javax.swing.JTextField;
 
 import components.MainFrame;
 import components.NotesList;
+import dbmodels.DBUtils;
 import gestion.Etudiant;
 import model.NoteMatiere;
 
@@ -30,6 +33,7 @@ public class EtudiantFrame extends MainFrame{
 	public static EtudiantFrame currentEtudiantFrame = null;
 	
 	public EtudiantFrame(Etudiant e) {
+		
 		super(500, 500, 0, 0);
 		if(currentEtudiantFrame == null)
 				currentEtudiantFrame = this;
@@ -39,8 +43,7 @@ public class EtudiantFrame extends MainFrame{
 
 		content = new JPanel();
 		content.setLayout(new BorderLayout());
-		content.setPreferredSize(new Dimension(1000,500));
-			// TODO ADD SEMESTRE CHOICE
+		content.setPreferredSize(new Dimension(1000,500));		
 		
 		nls = new NotesList(e, false, false, false);
 		req = new RequestNote();
@@ -59,17 +62,18 @@ public class EtudiantFrame extends MainFrame{
 	class RequestNote extends JPanel {
 		public RequestNote (){
 			setLayout(new GridLayout(4,0));
-			
+			currentEtud.getNotesFromDb(1);
+			currentEtud.getNotesFromDb(2);
 			JComboBox<String> matsBox = new JComboBox<String>();
 			matsBox.setPreferredSize(new Dimension(150,35));
 			matsBox.addItem("Semestre 1");
 			matsBox.addItem("Semestre 2");
 			
-			JComboBox<String> matiereBox = new JComboBox<String>();
+			JComboBox<NoteMatiere> matiereBox = new JComboBox<NoteMatiere>();
 			matiereBox.setPreferredSize(new Dimension(150,35));
 			
 			for (NoteMatiere nm : currentEtud.getNotesS1()) {
-				matiereBox.addItem(nm.getMatiere().getNomMatiere());
+				matiereBox.addItem(nm);
 			}
 			
 			JComboBox<String> noteBox = new JComboBox<String>();
@@ -84,21 +88,20 @@ public class EtudiantFrame extends MainFrame{
 			cont.setPreferredSize(new Dimension(1000,80));
 			cont.setVisible(true);
 			
-			
 			matsBox.addItemListener(e -> {
+			
 				String sm = (String)(matsBox.getSelectedItem());
 				matiereBox.removeAllItems();
 				if(sm == "Semestre 1") {
 					for (NoteMatiere nm : currentEtud.getNotesS1()) {
-						matiereBox.addItem(nm.getMatiere().getNomMatiere());
+						matiereBox.addItem(nm);
 					}
 				}else {
 					for (NoteMatiere nm : currentEtud.getNotesS2()) {
-						matiereBox.addItem(nm.getMatiere().getNomMatiere());
+						matiereBox.addItem(nm);
 					}
 				}
 				
-
 				revalidate();
 				repaint();
 
@@ -110,10 +113,28 @@ public class EtudiantFrame extends MainFrame{
 			
 			JButton submitBtn = new JButton("Send");
 			submitBtn.addActionListener(e->{
-				String requeString =  (String)(matsBox.getSelectedItem()) + " "+ (String)matiereBox.getSelectedItem() + " " + (String)noteBox.getSelectedItem();
-				System.out.println("Hii i sent the request ! "+requeString);
-				System.out.println(comm.getText());
-				JOptionPane.showMessageDialog(this, "Sent ! About : "  + requeString); 
+				Integer semestre =  matsBox.getSelectedIndex() + 1;
+				NoteMatiere nm = (NoteMatiere)matiereBox.getSelectedItem();
+				Integer typenote = noteBox.getSelectedIndex()+1;
+				
+				
+				try {
+					PreparedStatement prd = DBUtils.execute("INSERT INTO Requete VALUES (null,?,?,?,?)", new Object[] {semestre,nm.getId(),typenote,comm.getText()}); 
+
+					if(prd != null) {
+						System.out.println("moawjoud");
+						int added = prd.executeUpdate();
+						if(added == 1)
+							JOptionPane.showMessageDialog(this, "Sent !"); 
+						else
+							JOptionPane.showMessageDialog(this, "Error In DB connection !"); 
+
+					}else {
+						System.out.println("null");
+					}
+				} catch (Exception exc) {
+					exc.printStackTrace();
+				}
 			});
 			
 			add(matsBox);
@@ -123,8 +144,6 @@ public class EtudiantFrame extends MainFrame{
 			add(comm);
 			add(submitBtn);
 			pack();
-			
-
 		}
 	}
 	
@@ -154,9 +173,7 @@ public class EtudiantFrame extends MainFrame{
 			noteRequestItem.addActionListener(e-> {
 				if(e.getSource()!=noteRequestItem)
 					return;
-				
-				if(currentItem == "req")
-					return;
+
 				
 				//mark the current item
 				currentItem = "req";
@@ -170,15 +187,11 @@ public class EtudiantFrame extends MainFrame{
 				pack();
 				
 				System.out.println("Demande verif");
-				
 
 			});
 			
 			notesItem.addActionListener(e-> {
 				if(e.getSource()!=notesItem)
-					return;
-				
-				if(currentItem == "nls")
 					return;
 				
 				//mark the current item

@@ -24,7 +24,7 @@ public class NotesList extends DynamicList {
 
 	@Override
 	public void RefreshTable() {
-		String[] headers = {"Id Note","Id Matiere","Semestre","Nom Matiere","Ds","Tp","Examen"};
+		String[] headers = {"Id Note Matiere","Id Matiere","Id Note","Semestre","Nom Matiere","Examen","Ds","Tp"};
 		data = new ArrayList<ArrayList<String>>(); 
 		ed.getNotesFromDb(1);
 		ed.getNotesFromDb(2);
@@ -32,28 +32,27 @@ public class NotesList extends DynamicList {
 		//	System.out.println("Yar cheking the s1");
 			for(NoteMatiere nm : ed.getNotesS1()) {
 				ArrayList<String> notes = new ArrayList<String>();
-				notes.add(nm.getNotes().getId().toString());
+				notes.add(nm.getId().toString());
 				notes.add(nm.getMatiere().getId().toString());
+				notes.add(nm.getNotes().getId().toString());
 				notes.add("Semestre 1");
 				notes.add(nm.getMatiere().getNomMatiere());
+				notes.add(Double.toString(nm.getNotes().getExam()));
 				notes.add(Double.toString(nm.getNotes().getDs()));
 				notes.add(Double.toString(nm.getNotes().getTp()));
-				notes.add(Double.toString(nm.getNotes().getExam()));
 				data.add( notes);
 			}
-			/*}else {*/
-		//	System.out.println("Yar cheking the s2");
 
 			for(NoteMatiere nm : ed.getNotesS2()) {
 				ArrayList<String> notes =  new ArrayList<String>() ;
-				notes.add(nm.getNotes().getId().toString());
+				notes.add(nm.getId().toString());
 				notes.add(nm.getMatiere().getId().toString());
-
+				notes.add(nm.getNotes().getId().toString());
 				notes.add("Semestre 2");
 				notes.add(nm.getMatiere().getNomMatiere());
+				notes.add(Double.toString(nm.getNotes().getExam()));
 				notes.add(Double.toString(nm.getNotes().getDs()));
 				notes.add(Double.toString(nm.getNotes().getTp()));
-				notes.add(Double.toString(nm.getNotes().getExam()));
 				data.add( notes);
 			}
 		
@@ -61,27 +60,59 @@ public class NotesList extends DynamicList {
 	}
 	
 	@Override
-	void onDelete(ArrayList<ArrayList<String>> arr) {
+	Boolean onDelete(ArrayList<ArrayList<String>> arr) {
+		Boolean good = true;
 		// TODO Auto-generated method stub
-		System.out.println(arr.toString());
-		
-		
-	}
-
-	@Override
-	void onInsert(ArrayList<ArrayList<String>> arr) {
 		for(ArrayList<String> row : arr) {
-			Note nt = new Note(Integer.parseInt(row.get(0)),Double.parseDouble(row.get(4))  , Double.parseDouble(row.get(5)), Double.parseDouble(row.get(6)));
+			Note nt = new Note(Integer.parseInt(row.get(2)),Double.parseDouble(row.get(5))  , Double.parseDouble(row.get(6)), Double.parseDouble(row.get(7)));
 			Matiere m = new Matiere(Integer.parseInt(row.get(1)));
-			NoteMatiere nm = new NoteMatiere(m,nt);
-			nm.saveToDb(ed);
-		}
+			NoteMatiere nm = new NoteMatiere(Integer.parseInt(row.get(0)),m,nt);
+			if(!nm.removeFromDb()) {
+				good = false;
+			}
+		}		
+		return good;
+		
 	}
 
 	@Override
-	void onModify(ArrayList<ArrayList<ArrayList<String>>> arr) {
-		// TODO Auto-generated method stub
-		System.out.println(arr.toString());
+	Boolean onInsert(ArrayList<ArrayList<String>> arr) {
+		Boolean good = true;
+
+		for(ArrayList<String> row : arr) {
+			Note nt = new Note(Integer.parseInt(row.get(2)),Double.parseDouble(row.get(5))  , Double.parseDouble(row.get(6)), Double.parseDouble(row.get(7)));
+			Matiere m = new Matiere(Integer.parseInt(row.get(1)));
+			NoteMatiere nm = new NoteMatiere(Integer.parseInt(row.get(0)),m,nt);
+			if(!nm.saveToDb(ed)) {
+				good = false;
+			}
+		}
+		return good;
+
+	}
+
+	@Override
+	Boolean onModify(ArrayList<ArrayList<ArrayList<String>>> arr) {
+		Boolean good = true;
+
+		for(ArrayList<ArrayList<String>> couple : arr) {
+			ArrayList<String> oldens = couple.get(0);
+			ArrayList<String> newens = couple.get(1);
+
+			Note nt1 = new Note(Integer.parseInt(oldens.get(2)),Double.parseDouble(oldens.get(5))  , Double.parseDouble(oldens.get(6)), Double.parseDouble(oldens.get(7)));
+			Matiere m1 = new Matiere(Integer.parseInt(oldens.get(1)));
+			NoteMatiere nm1 = new NoteMatiere(Integer.parseInt(oldens.get(0)),m1,nt1);
+			
+
+			Note nt2 = new Note(Integer.parseInt(newens.get(2)),Double.parseDouble(newens.get(5))  , Double.parseDouble(newens.get(6)), Double.parseDouble(newens.get(7)));
+			Matiere m2 = new Matiere(Integer.parseInt(newens.get(1)));
+			NoteMatiere nm2 = new NoteMatiere(Integer.parseInt(newens.get(0)),m2,nt2);			
+
+			if(!nm1.updateInDbTo(nm2)) {
+				good = false;
+			}
+		}
+		return good;
 
 	}
 

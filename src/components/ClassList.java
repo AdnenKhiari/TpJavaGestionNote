@@ -11,34 +11,52 @@ public class ClassList extends DynamicList {
 	public ClassList(Boolean modPermission, Boolean delPermission,Boolean addPermission) {
 		super(modPermission,delPermission,addPermission);
 		RefreshTable();
+		
 }
 	
 	@Override
-	void onDelete(ArrayList<ArrayList<String>> arr) {
+	Boolean onDelete(ArrayList<ArrayList<String>> arr) {
+		Boolean good = true;
+
 		for(ArrayList<String> row: arr) {
 			Classe cl = new Classe(row.get(1),Integer.parseInt(row.get(0)));
-			cl.removeFromDb();
+			if(!cl.removeFromDb()) {
+				good = false;
+			}
 		}
+		return good;
+
 	}
 
 	@Override
-	void onInsert(ArrayList<ArrayList<String>> arr) {
+	Boolean onInsert(ArrayList<ArrayList<String>> arr) {
+		Boolean good = true;
+
 		for(ArrayList<String> row: arr) {
 			Classe cl = new Classe(row.get(1),Integer.parseInt(row.get(0)));
-			cl.saveToDb();
+			if(!cl.saveToDb()) {
+				good = false;
+			}
 		}
+		return good;
+
 	}
 
 	@Override
-	void onModify(ArrayList<ArrayList<ArrayList<String>>> arr) {
+	Boolean onModify(ArrayList<ArrayList<ArrayList<String>>> arr) {
+		Boolean good = true;
 		for(ArrayList<ArrayList<String>> couple : arr) {
 			ArrayList<String> oldens = couple.get(0);
 			ArrayList<String> newens = couple.get(1);
 
 			Classe cl = new Classe(oldens.get(1),Integer.parseInt(oldens.get(0)));
 			Classe updatedcl = new Classe(newens.get(1),Integer.parseInt(newens.get(0)));
-			cl.updateInDbTo(updatedcl);
+			if(!cl.updateInDbTo(updatedcl)) {
+				good = false;
+			}
+			
 		}
+		return good;
 	}
 
 	@Override

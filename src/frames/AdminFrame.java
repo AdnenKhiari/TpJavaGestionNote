@@ -42,10 +42,9 @@ public class AdminFrame extends MainFrame {
 
 	public AdminFrame(Admin a) {
 		
-		super(500,700,0,0);
+		super(700,650,0,0);
 		if(currentAdminFrame == null)
 			currentAdminFrame = this;
-		
 		
 		admin = a;
 		
@@ -59,7 +58,6 @@ public class AdminFrame extends MainFrame {
 		//Init the window to have it by default
 		cp.setVisible(true);
 		contentJPanel.add(cp);
-		
 		
 		el = new EnseignantList(true,true,true);
 		el.setVisible(true);
@@ -80,7 +78,6 @@ public class AdminFrame extends MainFrame {
 		String currentItem = "class";
 
 		public MainMenu() {
-			// TODO Auto-generated constructor stub
 			
 			setPreferredSize(new Dimension(1000,30));
 			
@@ -184,6 +181,7 @@ public class AdminFrame extends MainFrame {
 		int i = 0;
 
 		ClassPage(){
+			
 			super();
 			
 			setLayout(new BorderLayout());
@@ -211,8 +209,6 @@ public class AdminFrame extends MainFrame {
 				
 				@Override
 				public void itemStateChanged(ItemEvent e) {
-						/*System.out.println("XDD");
-						System.out.println(i++);*/
 						changeContentBasedOnClass();			
 				}
 			});
@@ -245,7 +241,7 @@ public class AdminFrame extends MainFrame {
 			//reset the etudiant list to use the current class
 			etudiantList = new EtudiantList(cl,true,true,true);
 			
-			//reset the view to the current one 
+			//reset the view to 
 
 			etudiantList.setVisible(false);
 			
@@ -275,19 +271,13 @@ public class AdminFrame extends MainFrame {
 				JMenuItem etudiants = new JMenuItem("Etudiant");
 				JMenuItem notes = new JMenuItem("Notes");
 
-				
-
-				
 				notes.addActionListener(e-> {
 					if(e.getSource()!=notes)
-						return;
-					
+						return;					
 					
 					if(currentItem.equals( "Notes"))
 						return;
-					currentItem = "Notes";
-					 
-										 
+					currentItem = "Notes";	 
 				
 					if(!etudiantID.equals(etudiantNumField.getText())) {
 						
@@ -337,24 +327,19 @@ public class AdminFrame extends MainFrame {
 
 				});
 				
-
 				add(etudiants);
 				add(notes);
-
-				
 			}
 		}
-
 	}
 	
 	void renderComp(Component c,JPanel parent) {
 		c.setVisible(true);
 		parent.removeAll();
 		parent.add(c);
-
 		parent.revalidate();
 		parent.repaint();
 	}
-	
-	
 }
+
+

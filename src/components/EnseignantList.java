@@ -13,36 +13,47 @@ public class EnseignantList extends DynamicList {
 	}
 
 	@Override
-	void onDelete(ArrayList<ArrayList<String>> arr) {
-		// TODO Auto-generated method stub
-		// TODO Auto-generated method stub
+	Boolean onDelete(ArrayList<ArrayList<String>> arr) {
+		Boolean good = true;
 		for(ArrayList<String> row : arr) {
 			Enseignant ens = new Enseignant(row.get(3), row.get(4), row.get(1), row.get(2),Integer.parseInt(row.get(0)));
-			ens.removeFromDb();
+			if(!ens.removeFromDb()) {
+				good = false;
+			}
 		}
+		return good;
 	}
 
 	@Override
-	void onInsert(ArrayList<ArrayList<String>> arr) {
-		System.out.println("ya whayid ");
-		// TODO Auto-generated method stub
+	Boolean onInsert(ArrayList<ArrayList<String>> arr) {
+		Boolean good = true;
 		for(ArrayList<String> row : arr) {
 			Enseignant ens = new Enseignant(row.get(3), row.get(4), row.get(1), row.get(2),Integer.parseInt(row.get(0)));
-			ens.saveToDb();
+			if(!ens.saveToDb()) {
+				good = false;
+
+			}
 		}
+		return good;
 		
 	}
 
 	@Override
-	void onModify(ArrayList<ArrayList<ArrayList<String>>> arr) {
+	Boolean onModify(ArrayList<ArrayList<ArrayList<String>>> arr) {
+		Boolean good = true;
+
 		for(ArrayList<ArrayList<String>> couple : arr) {
 			ArrayList<String> oldens = couple.get(0);
 			ArrayList<String> newens = couple.get(1);
 
 			Enseignant ens = new Enseignant(oldens.get(3), oldens.get(4), oldens.get(1), oldens.get(2),Integer.parseInt(oldens.get(0)));
 			Enseignant updatedens = new Enseignant(newens.get(3), newens.get(4), newens.get(1), newens.get(2),Integer.parseInt(newens.get(0)));
-			ens.updateInDbTo(updatedens);
+			if(!ens.updateInDbTo(updatedens)) {
+				good = false;
+			}
 		}
+		return good;
+
 	}
 
 	@Override

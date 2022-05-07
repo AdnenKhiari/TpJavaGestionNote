@@ -53,67 +53,6 @@ public class Classe {
          return nom;
     }
 	
-	/*void addMatiere(Matiere m,String sm) {
-		for(Etudiant e : listeEtudiant) {
-			NoteMatiere nMatiere = new NoteMatiere(m);
-			e.ajouterNote(nMatiere,sm);
-		}
-	}
-	
-	void modMatiere(String m,Matiere nm,String sm) {
-		for(Etudiant e : listeEtudiant) {
-		
-			if(sm.equals("Semestre 1")) {
-				ArrayList<NoteMatiere> arr = e.getNotesS1();
-				for(int i = 0;i < arr.size();i++) {
-					 if(m.equals(arr.get(i).getMatiere().getNomMatiere())) {
-						 arr.get(i).setMatiere(nm);
-					 }
-				}
-				e.setNotesS1(arr);
-			}else {
-				
-				ArrayList<NoteMatiere> arr  = e.getNotesS2();
-				for(int i = 0;i < arr.size();i++) {
-					 if(m.equals(arr.get(i).getMatiere().getNomMatiere())) {
-						 arr.get(i).setMatiere(nm);
-					 }
-				}
-				e.setNotesS2(arr);
-			}
-
-		}
-	}
-	
-	void removeMatiere(String m,String sm) {
-	
-		if(sm.equals("Semestre 1")) {
-			for(Etudiant e : listeEtudiant) {
-				
-				ArrayList<NoteMatiere> arr = e.getNotesS1();
-				for(int i = 0;i < arr.size();i++) {
-					 if(m.equals(arr.get(i).getMatiere().getNomMatiere())) {
-						 arr.remove(i);
-					 }
-				}
-				e.setNotesS1(arr);
-
-			}
-		}else {
-			for(Etudiant e : listeEtudiant) {
-				
-				ArrayList<NoteMatiere> arr = e.getNotesS2();
-				for(int i = 0;i < arr.size();i++) {
-					 if(m.equals(arr.get(i).getMatiere().getNomMatiere())) {
-						 arr.remove(i);
-					 }
-				}
-				e.setNotesS2(arr);
-			}
-		}
-
-	}*/
-	
 	void setNom(String nom) {
 		this.nom = nom;
 	}
@@ -121,10 +60,6 @@ public class Classe {
 	public String getNom() {
 		 return nom;
 	}
-	
-	//TODO get etudiant by id
-	//TODO get liste matiere (int semnumber)
-	//TODO pour un etudiant ajouter la method getNotes wich loads the notes of sem1 and 2
 	
 	public void getListEtudiantFromDb() {
 		
@@ -154,7 +89,7 @@ public class Classe {
 		
 	}
 	
-	public void saveToDb()  {
+	public Boolean saveToDb()  {
 
 		try {
 			// TODO Auto-generated method stub
@@ -165,17 +100,25 @@ public class Classe {
 				System.out.println(affected);
 				if(affected == 1) {
 					System.out.println("added classe succesfully");
+				}else {
+					return false;
 				}
 			}else {
 				System.out.println("null");
+				return false;
+
 			}
 			
 			
 		} catch (Exception e) {
-			e.printStackTrace();			
+			e.printStackTrace();
+			return false;
+
 		}
+		return true;
+
 	}
-	public void removeFromDb()  {
+	public Boolean removeFromDb()  {
 
 		try {
 			// TODO Auto-generated method stub
@@ -186,20 +129,31 @@ public class Classe {
 				System.out.println(removed);
 				if(removed == 1) {
 					System.out.println("removed classe succesfully");
+				}else {
+					return false;
+
 				}
+				
 			}else {
+
 				System.out.println("null");
+				return false;
+
 			}
 			
 			
 		} catch (Exception e) {
-			e.printStackTrace();			
+			e.printStackTrace();	
+			return false;
+
 		}
+		return true;
+
 	}
-	public void updateInDbTo(Classe newClasse)  {
+	public Boolean updateInDbTo(Classe newClasse)  {
 
 		try {
-			// TODO Auto-generated method stub
+			
 			PreparedStatement prd = DBUtils.execute("UPDATE Classe SET nomClasse=? WHERE idClasse=? ",new Object[] {newClasse.nom,idClasse}); 
 
 			if(prd != null) {
@@ -207,12 +161,19 @@ public class Classe {
 				System.out.println(removed);
 				if(removed == 1) {
 					System.out.println("updated classe succesfully");
+				}else {
+					return false;
 				}
 			}else {
 				System.out.println("null");
+				return false;
+
 			}
 		} catch (Exception e) {
-			e.printStackTrace();			
+			e.printStackTrace();
+			return false;
 		}
+		return true;
+
 	}
 }

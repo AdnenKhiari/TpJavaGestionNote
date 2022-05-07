@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -33,10 +34,6 @@ public abstract class DynamicList extends JPanel{
 	Object[][] objects = null;
 	private int selectedRowIndex = -1;
 	
-	
-	//useless
-	ArrayList<String> selectedRow = null;
-
 	private ArrayList<Integer> removedObjects = null;
 	private ArrayList<Integer> addedObjects = null;
 	
@@ -105,6 +102,10 @@ public abstract class DynamicList extends JPanel{
 	
 	protected void UpdateData(String[] headers,ArrayList<ArrayList<String>> data) {
 		
+		
+		removeAll();
+		
+		
 		this.headers = headers;
 		formattedDataObject = new ArrayList<ArrayList<Object>>(data.size());
 
@@ -133,6 +134,7 @@ public abstract class DynamicList extends JPanel{
 		//create the table
 		tbModel = new DefaultTableModel(objects,headers);
 		tb = new JTable(tbModel) {
+
 			@Override
 			public boolean isCellEditable(int row,int column) {
 				return modPermission;
@@ -170,18 +172,11 @@ public abstract class DynamicList extends JPanel{
 		
 
 		JPanel btnContainer = new JPanel();
-		btnContainer.setLayout(new BorderLayout(10,10));
+		btnContainer.setLayout(new GridLayout(0,3));
 		 
 		JButton removeBtn = new RemoveButton("Remove Row");
 		JButton addBtn = new AddButton("Add a Row");
 		JButton saveBtn = new SaveButton("Save Work");
-		
-		removeBtn.setPreferredSize(new Dimension(120,50));
-		saveBtn.setPreferredSize(new Dimension(120,50));
-		addBtn.setPreferredSize(new Dimension(120,50));
-
-		btnContainer.setPreferredSize(new Dimension(100,70));
-		 
 	
 		
 		JScrollPane scroll = new JScrollPane(tb);
@@ -200,12 +195,17 @@ public abstract class DynamicList extends JPanel{
 		add(btnContainer,BorderLayout.CENTER);
 	
 		setVisible(true);
+
 	}
+	
+	abstract Boolean onDelete(ArrayList<ArrayList<String>> arr);
+	abstract Boolean onInsert(ArrayList<ArrayList<String>> arr);
+	abstract Boolean onModify(ArrayList<ArrayList<ArrayList<String>>> arr);
+	abstract void RefreshTable();
 
 
 	public DynamicList(Boolean modPermission, Boolean delPermission,Boolean addPermission) {
 		
-		this.headers = headers;
 		this.modPermission = modPermission;
 		this.delPermission = delPermission;
 		this.addPermission = addPermission;
@@ -213,11 +213,6 @@ public abstract class DynamicList extends JPanel{
 		addedObjects = new ArrayList<Integer>();
 
 	}
-	
-	abstract void onDelete(ArrayList<ArrayList<String>> arr);
-	abstract void onInsert(ArrayList<ArrayList<String>> arr);
-	abstract void onModify(ArrayList<ArrayList<ArrayList<String>>> arr);
-	abstract void RefreshTable();
 	
 	class RemoveButton extends JButton implements ActionListener {
 		public RemoveButton(String name) {
@@ -261,15 +256,41 @@ public abstract class DynamicList extends JPanel{
 			if(JOptionPane.showConfirmDialog(null, "Save Changes ?") != 0)
 					return;
 			
-			onDelete(getRemovedRows());
-			onInsert(getNewRows());
-			onModify(getModifiedRows());
-			
-			RefreshTable();
+			ArrayList<ArrayList<String>> removed = getRemovedRows();
+			ArrayList<ArrayList<String>> inserted = getNewRows();
+			ArrayList<ArrayList<ArrayList<String>>> modified = getModifiedRows();
 
-			JOptionPane.showMessageDialog(this, "Saved Data ! ");
-			repaint();
-			revalidate();
+			Boolean sucessdelete = onDelete(removed);
+			Boolean sucessinsert  = onInsert(inserted);
+			Boolean sucessmodify = onModify(modified);
+			if(removed.size()> 0) {
+				if(sucessdelete) {
+					JOptionPane.showMessageDialog(this, "Removed Data Succefully  ! ");
+				}else {
+					JOptionPane.showMessageDialog(this, "Error","Error while removing data  ! ",JOptionPane.ERROR_MESSAGE);
+				}
+			}
+	
+			if(inserted.size() > 0) {
+				if(sucessinsert) {
+					JOptionPane.showMessageDialog(this, "Inserted Data Succefully  ! ");
+				}else {
+					JOptionPane.showMessageDialog(this, "Error","Error while Inserting data  ! ",JOptionPane.ERROR_MESSAGE);
+				}
+			}
+			if(modified.size()>0) {
+				if(sucessmodify) {
+					JOptionPane.showMessageDialog(this, "Modified Data Succefully  ! ");
+				}else {
+					JOptionPane.showMessageDialog(this, "Error","Error while Modifying data  ! ",JOptionPane.ERROR_MESSAGE);
+				}
+			}
+			
+			if(sucessdelete || sucessinsert || sucessmodify ) {
+				RefreshTable();
+				removedObjects.clear();
+				addedObjects.clear();
+			}
 		}
 
 	}
